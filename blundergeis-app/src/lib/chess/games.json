@@ -1,0 +1,515 @@
+{
+  "games": [
+    {
+      "id": "3-white-1",
+      "moveCount": 3,
+      "outcome": "white_win",
+      "description": "Scholar's Mate setup — aggressive early attack",
+      "pgn": "1. e4 e5 2. Qh5 Nc6 3. Bc4"
+    },
+    {
+      "id": "3-white-2",
+      "moveCount": 3,
+      "outcome": "white_win",
+      "description": "Italian Game — classical central control",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4"
+    },
+    {
+      "id": "3-white-3",
+      "moveCount": 3,
+      "outcome": "white_win",
+      "description": "Queen's Gambit — queenside pressure",
+      "pgn": "1. d4 d5 2. c4 e6 3. Nc3"
+    },
+    {
+      "id": "3-black-1",
+      "moveCount": 3,
+      "outcome": "black_mate",
+      "description": "Reversed opening — Black seizes initiative",
+      "pgn": "1. e4 e5 2. f4 d5 3. exd5"
+    },
+    {
+      "id": "3-black-2",
+      "moveCount": 3,
+      "outcome": "black_mate",
+      "description": "Sicilian Defence — Black counters aggressively",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4"
+    },
+    {
+      "id": "3-black-3",
+      "moveCount": 3,
+      "outcome": "black_mate",
+      "description": "French Defence — Black builds counterplay",
+      "pgn": "1. e4 e6 2. d4 d5 3. e5"
+    },
+    {
+      "id": "3-draw-1",
+      "moveCount": 3,
+      "outcome": "draw",
+      "description": "Symmetrical English — balanced tension",
+      "pgn": "1. c4 c5 2. Nf3 Nf6 3. Nc3"
+    },
+    {
+      "id": "3-draw-2",
+      "moveCount": 3,
+      "outcome": "draw",
+      "description": "Reti Opening — hypermodern balance",
+      "pgn": "1. Nf3 d5 2. g3 c5 3. Bg2"
+    },
+    {
+      "id": "3-draw-3",
+      "moveCount": 3,
+      "outcome": "draw",
+      "description": "King's Indian Attack — solid setup",
+      "pgn": "1. Nf3 Nf6 2. g3 g6 3. Bg2"
+    },
+
+    {
+      "id": "4-white-1",
+      "moveCount": 4,
+      "outcome": "white_win",
+      "description": "Italian Game — four knights",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5"
+    },
+    {
+      "id": "4-white-2",
+      "moveCount": 4,
+      "outcome": "white_win",
+      "description": "Spanish Opening — Ruy Lopez early",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4"
+    },
+    {
+      "id": "4-white-3",
+      "moveCount": 4,
+      "outcome": "white_win",
+      "description": "Queen's Gambit Accepted — White recaptures",
+      "pgn": "1. d4 d5 2. c4 dxc4 3. Nf3 Nf6 4. e3"
+    },
+    {
+      "id": "4-black-1",
+      "moveCount": 4,
+      "outcome": "black_mate",
+      "description": "King's Gambit declined — Black fights back",
+      "pgn": "1. e4 e5 2. f4 Bc5 3. Nf3 d6 4. c3"
+    },
+    {
+      "id": "4-black-2",
+      "moveCount": 4,
+      "outcome": "black_mate",
+      "description": "Caro-Kann — Black solid counter",
+      "pgn": "1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3"
+    },
+    {
+      "id": "4-black-3",
+      "moveCount": 4,
+      "outcome": "black_mate",
+      "description": "Alekhine Defence — Black provokes overextension",
+      "pgn": "1. e4 Nf6 2. e5 Nd5 3. d4 d6 4. c4"
+    },
+    {
+      "id": "4-draw-1",
+      "moveCount": 4,
+      "outcome": "draw",
+      "description": "London System — solid symmetry",
+      "pgn": "1. d4 d5 2. Nf3 Nf6 3. Bf4 e6 4. e3"
+    },
+    {
+      "id": "4-draw-2",
+      "moveCount": 4,
+      "outcome": "draw",
+      "description": "English Opening — queenside balance",
+      "pgn": "1. c4 e5 2. Nc3 Nf6 3. g3 d5 4. cxd5"
+    },
+    {
+      "id": "4-draw-3",
+      "moveCount": 4,
+      "outcome": "draw",
+      "description": "Nimzo-Indian — equal structure",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. e3"
+    },
+
+    {
+      "id": "5-white-1",
+      "moveCount": 5,
+      "outcome": "white_win",
+      "description": "Ruy Lopez — classical main line",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O"
+    },
+    {
+      "id": "5-white-2",
+      "moveCount": 5,
+      "outcome": "white_win",
+      "description": "Sicilian Najdorf — White attacks",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3"
+    },
+    {
+      "id": "5-white-3",
+      "moveCount": 5,
+      "outcome": "white_win",
+      "description": "Queen's Gambit Declined — White develops",
+      "pgn": "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3"
+    },
+    {
+      "id": "5-black-1",
+      "moveCount": 5,
+      "outcome": "black_mate",
+      "description": "Dutch Defence — Black attacks kingside",
+      "pgn": "1. d4 f5 2. c4 Nf6 3. g3 e6 4. Bg2 Be7 5. Nf3"
+    },
+    {
+      "id": "5-black-2",
+      "moveCount": 5,
+      "outcome": "black_mate",
+      "description": "Pirc Defence — Black undermines center",
+      "pgn": "1. e4 d6 2. d4 Nf6 3. Nc3 g6 4. f4 Bg7 5. Nf3"
+    },
+    {
+      "id": "5-black-3",
+      "moveCount": 5,
+      "outcome": "black_mate",
+      "description": "Grünfeld Defence — Black attacks d4",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 d5 4. cxd5 Nxd5 5. e4"
+    },
+    {
+      "id": "5-draw-1",
+      "moveCount": 5,
+      "outcome": "draw",
+      "description": "Slav Defence — solid pawn structure",
+      "pgn": "1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. e3"
+    },
+    {
+      "id": "5-draw-2",
+      "moveCount": 5,
+      "outcome": "draw",
+      "description": "King's Indian — balanced fianchetto",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3"
+    },
+    {
+      "id": "5-draw-3",
+      "moveCount": 5,
+      "outcome": "draw",
+      "description": "Catalan Opening — equal play",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. g3 d5 4. Bg2 Be7 5. Nf3"
+    },
+
+    {
+      "id": "6-white-1",
+      "moveCount": 6,
+      "outcome": "white_win",
+      "description": "Ruy Lopez — White castles and pressures",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1"
+    },
+    {
+      "id": "6-white-2",
+      "moveCount": 6,
+      "outcome": "white_win",
+      "description": "Sicilian Dragon — White Yugoslav attack",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 6. Be3"
+    },
+    {
+      "id": "6-white-3",
+      "moveCount": 6,
+      "outcome": "white_win",
+      "description": "English Opening — White builds structure",
+      "pgn": "1. c4 e5 2. Nc3 Nf6 3. g3 d5 4. cxd5 Nxd5 5. Bg2 Nb6 6. Nf3"
+    },
+    {
+      "id": "6-black-1",
+      "moveCount": 6,
+      "outcome": "black_mate",
+      "description": "King's Indian Attack — Black counters",
+      "pgn": "1. e4 e6 2. d3 d5 3. Nd2 Nf6 4. Ngf3 c5 5. g3 Nc6 6. Bg2"
+    },
+    {
+      "id": "6-black-2",
+      "moveCount": 6,
+      "outcome": "black_mate",
+      "description": "Benoni Defence — Black dynamic counterplay",
+      "pgn": "1. d4 Nf6 2. c4 c5 3. d5 e6 4. Nc3 exd5 5. cxd5 d6 6. e4"
+    },
+    {
+      "id": "6-black-3",
+      "moveCount": 6,
+      "outcome": "black_mate",
+      "description": "Benko Gambit — Black queenside pressure",
+      "pgn": "1. d4 Nf6 2. c4 c5 3. d5 b5 4. cxb5 a6 5. bxa6 g6 6. Nc3"
+    },
+    {
+      "id": "6-draw-1",
+      "moveCount": 6,
+      "outcome": "draw",
+      "description": "Queen's Gambit — equal development",
+      "pgn": "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O 6. Nf3"
+    },
+    {
+      "id": "6-draw-2",
+      "moveCount": 6,
+      "outcome": "draw",
+      "description": "Nimzo-Indian — balanced structure",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. e3 O-O 5. Bd3 d5 6. Nf3"
+    },
+    {
+      "id": "6-draw-3",
+      "moveCount": 6,
+      "outcome": "draw",
+      "description": "Reti Opening — hypermodern balance",
+      "pgn": "1. Nf3 d5 2. g3 Nf6 3. Bg2 e6 4. O-O Be7 5. d3 O-O 6. Nbd2"
+    },
+
+    {
+      "id": "7-white-1",
+      "moveCount": 7,
+      "outcome": "white_win",
+      "description": "Ruy Lopez — White dominates centre",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3"
+    },
+    {
+      "id": "7-white-2",
+      "moveCount": 7,
+      "outcome": "white_win",
+      "description": "Sicilian Najdorf — White launches attack",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Bg5 e6 7. f4"
+    },
+    {
+      "id": "7-white-3",
+      "moveCount": 7,
+      "outcome": "white_win",
+      "description": "King's Indian Defence — White space advantage",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. O-O"
+    },
+    {
+      "id": "7-black-1",
+      "moveCount": 7,
+      "outcome": "black_mate",
+      "description": "French Defence — Black attacks White centre",
+      "pgn": "1. e4 e6 2. d4 d5 3. Nc3 Nf6 4. Bg5 dxe4 5. Nxe4 Be7 6. Bxf6 gxf6 7. Nf3"
+    },
+    {
+      "id": "7-black-2",
+      "moveCount": 7,
+      "outcome": "black_mate",
+      "description": "Sicilian Scheveningen — Black counterattacks",
+      "pgn": "1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 d6 6. Be2 Be7 7. O-O"
+    },
+    {
+      "id": "7-black-3",
+      "moveCount": 7,
+      "outcome": "black_mate",
+      "description": "Grünfeld — Black destroys White centre",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 d5 4. cxd5 Nxd5 5. e4 Nxc3 6. bxc3 Bg7 7. Nf3"
+    },
+    {
+      "id": "7-draw-1",
+      "moveCount": 7,
+      "outcome": "draw",
+      "description": "Queen's Indian — equal kingside structure",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. Nf3 b6 4. g3 Bb7 5. Bg2 Be7 6. O-O O-O 7. Nc3"
+    },
+    {
+      "id": "7-draw-2",
+      "moveCount": 7,
+      "outcome": "draw",
+      "description": "Slav Defence — solid balanced play",
+      "pgn": "1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. e3 Nbd7 6. Bd3 dxc4 7. Bxc4"
+    },
+    {
+      "id": "7-draw-3",
+      "moveCount": 7,
+      "outcome": "draw",
+      "description": "English Symmetrical — mirrored development",
+      "pgn": "1. c4 c5 2. Nf3 Nf6 3. Nc3 Nc6 4. g3 g6 5. Bg2 Bg7 6. O-O O-O 7. d4"
+    },
+
+    {
+      "id": "8-white-1",
+      "moveCount": 8,
+      "outcome": "white_win",
+      "description": "Ruy Lopez — White launches queenside push",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3"
+    },
+    {
+      "id": "8-white-2",
+      "moveCount": 8,
+      "outcome": "white_win",
+      "description": "Sicilian Dragon — White attacks kingside",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 6. Be3 Bg7 7. f3 O-O 8. Qd2"
+    },
+    {
+      "id": "8-white-3",
+      "moveCount": 8,
+      "outcome": "white_win",
+      "description": "Queen's Gambit — White gains space",
+      "pgn": "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O 6. Nf3 Nbd7 7. Rc1 c6 8. Bd3"
+    },
+    {
+      "id": "8-black-1",
+      "moveCount": 8,
+      "outcome": "black_mate",
+      "description": "King's Indian — Black kingside attack",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. O-O Nc6 8. d5"
+    },
+    {
+      "id": "8-black-2",
+      "moveCount": 8,
+      "outcome": "black_mate",
+      "description": "Nimzo-Indian — Black seizes dark squares",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. e3 O-O 5. Bd3 d5 6. Nf3 c5 7. O-O Nc6 8. a3"
+    },
+    {
+      "id": "8-black-3",
+      "moveCount": 8,
+      "outcome": "black_mate",
+      "description": "Benoni — Black queenside counterplay",
+      "pgn": "1. d4 Nf6 2. c4 c5 3. d5 e6 4. Nc3 exd5 5. cxd5 d6 6. e4 g6 7. Nf3 Bg7 8. Be2"
+    },
+    {
+      "id": "8-draw-1",
+      "moveCount": 8,
+      "outcome": "draw",
+      "description": "Catalan — drawish structure",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. g3 d5 4. Bg2 Be7 5. Nf3 O-O 6. O-O dxc4 7. Qc2 a6 8. Qxc4"
+    },
+    {
+      "id": "8-draw-2",
+      "moveCount": 8,
+      "outcome": "draw",
+      "description": "Petroff Defence — symmetrical endgame",
+      "pgn": "1. e4 e5 2. Nf3 Nf6 3. Nxe5 d6 4. Nf3 Nxe4 5. d4 d5 6. Bd3 Nc6 7. O-O Be7 8. Re1"
+    },
+    {
+      "id": "8-draw-3",
+      "moveCount": 8,
+      "outcome": "draw",
+      "description": "Four Knights — balanced position",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6 4. Bb5 Bb4 5. O-O O-O 6. d3 d6 7. Bg5 Bxc3 8. bxc3"
+    },
+
+    {
+      "id": "9-white-1",
+      "moveCount": 9,
+      "outcome": "white_win",
+      "description": "Ruy Lopez — White prepares d4 break",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3"
+    },
+    {
+      "id": "9-white-2",
+      "moveCount": 9,
+      "outcome": "white_win",
+      "description": "Sicilian Najdorf — White threatens f5",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Bg5 e6 7. f4 Be7 8. Qf3 Qc7 9. O-O-O"
+    },
+    {
+      "id": "9-white-3",
+      "moveCount": 9,
+      "outcome": "white_win",
+      "description": "King's Indian — White central bind",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. O-O Nc6 8. d5 Ne7 9. Ne1"
+    },
+    {
+      "id": "9-black-1",
+      "moveCount": 9,
+      "outcome": "black_mate",
+      "description": "Sicilian Dragon — Black queenside break",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 9. Bc4"
+    },
+    {
+      "id": "9-black-2",
+      "moveCount": 9,
+      "outcome": "black_mate",
+      "description": "Grünfeld Exchange — Black pressures c3",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 d5 4. cxd5 Nxd5 5. e4 Nxc3 6. bxc3 Bg7 7. Nf3 c5 8. Rb1 O-O 9. Be2"
+    },
+    {
+      "id": "9-black-3",
+      "moveCount": 9,
+      "outcome": "black_mate",
+      "description": "French Winawer — Black queenside attack",
+      "pgn": "1. e4 e6 2. d4 d5 3. Nc3 Bb4 4. e5 c5 5. a3 Bxc3+ 6. bxc3 Ne7 7. Qg4 Qc7 8. Qxg7 Rg8 9. Qxh7"
+    },
+    {
+      "id": "9-draw-1",
+      "moveCount": 9,
+      "outcome": "draw",
+      "description": "Nimzo-Indian — equal minor pieces",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. e3 O-O 5. Bd3 d5 6. Nf3 c5 7. O-O Nc6 8. a3 Bxc3 9. bxc3"
+    },
+    {
+      "id": "9-draw-2",
+      "moveCount": 9,
+      "outcome": "draw",
+      "description": "Queen's Gambit Declined — equal endgame",
+      "pgn": "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O 6. Nf3 Nbd7 7. Rc1 c6 8. Bd3 dxc4 9. Bxc4"
+    },
+    {
+      "id": "9-draw-3",
+      "moveCount": 9,
+      "outcome": "draw",
+      "description": "Petroff Defence — drawish symmetry",
+      "pgn": "1. e4 e5 2. Nf3 Nf6 3. Nxe5 d6 4. Nf3 Nxe4 5. d4 d5 6. Bd3 Nc6 7. O-O Be7 8. Re1 Bg4 9. c3"
+    },
+
+    {
+      "id": "10-white-1",
+      "moveCount": 10,
+      "outcome": "white_win",
+      "description": "Ruy Lopez — White d4 breakthrough",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4"
+    },
+    {
+      "id": "10-white-2",
+      "moveCount": 10,
+      "outcome": "white_win",
+      "description": "Sicilian Najdorf — White launches kingside attack",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Bg5 e6 7. f4 Be7 8. Qf3 Qc7 9. O-O-O Nbd7 10. g4"
+    },
+    {
+      "id": "10-white-3",
+      "moveCount": 10,
+      "outcome": "white_win",
+      "description": "King's Indian — White central control established",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. O-O Nc6 8. d5 Ne7 9. Ne1 Nd7 10. f3"
+    },
+    {
+      "id": "10-black-1",
+      "moveCount": 10,
+      "outcome": "black_mate",
+      "description": "Sicilian Dragon — Black breaks through queenside",
+      "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 6. Be3 Bg7 7. f3 O-O 8. Qd2 Nc6 9. Bc4 Bd7 10. O-O-O"
+    },
+    {
+      "id": "10-black-2",
+      "moveCount": 10,
+      "outcome": "black_mate",
+      "description": "King's Indian — Black kingside attack begins",
+      "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. O-O Nc6 8. d5 Ne7 9. Ne1 Nd7 10. f3"
+    },
+    {
+      "id": "10-black-3",
+      "moveCount": 10,
+      "outcome": "black_mate",
+      "description": "French Tarrasch — Black queenside majority",
+      "pgn": "1. e4 e6 2. d4 d5 3. Nd2 c5 4. exd5 exd5 5. Ngf3 Nc6 6. Bb5 Bd6 7. dxc5 Bxc5 8. O-O Nge7 9. Nb3 Bd6 10. Re1"
+    },
+    {
+      "id": "10-draw-1",
+      "moveCount": 10,
+      "outcome": "draw",
+      "description": "Catalan — balanced minor piece endgame",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. g3 d5 4. Bg2 Be7 5. Nf3 O-O 6. O-O dxc4 7. Qc2 a6 8. Qxc4 b5 9. Qc2 Bb7 10. Bd2"
+    },
+    {
+      "id": "10-draw-2",
+      "moveCount": 10,
+      "outcome": "draw",
+      "description": "Queen's Indian — equal queens trade",
+      "pgn": "1. d4 Nf6 2. c4 e6 3. Nf3 b6 4. g3 Bb7 5. Bg2 Be7 6. O-O O-O 7. Nc3 Ne4 8. Qc2 Nxc3 9. Qxc3 f5 10. b3"
+    },
+    {
+      "id": "10-draw-3",
+      "moveCount": 10,
+      "outcome": "draw",
+      "description": "Slav Defence — solid draw structure",
+      "pgn": "1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. e3 Nbd7 6. Bd3 dxc4 7. Bxc4 b5 8. Bd3 a6 9. e4 c5 10. e5"
+    }
+  ]
+}
