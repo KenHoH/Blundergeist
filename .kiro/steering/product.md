@@ -2,6 +2,7 @@
 title: Product Rules - Truth vs Show Layer
 inclusion: always
 ---
+- Read only one file at a time when exploring the codebase to avoid API rate limits.
 
 # Product Rules: Truth Layer vs. Show Layer
 

@@ -11,7 +11,9 @@ if (!process.env.GEMINI_API_KEY) {
 
 const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-3.8-flash";
+const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1000; // doubles each attempt: 1s → 2s → 4s
 
 // ---------------------------------------------------------------------------
 // Input / Output types
@@ -43,6 +45,54 @@ export interface LLMJudgeResult {
   reason: string;       // 1-2 sentences citing specific diff evidence
   bestMove?: string;    // Required when label is Inaccuracy, Mistake, or Blunder
   codeSnippet?: string; // The most relevant diff hunk (≤20 lines)
+}
+
+// ---------------------------------------------------------------------------
+// Retry helper with exponential backoff
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true when the error is a transient 503 high-demand spike.
+ * Any other error (404, 400, auth) is non-retryable and should propagate.
+ */
+function isRetryable(err: unknown): boolean {
+  if (err instanceof Error) {
+    try {
+      const body = JSON.parse(err.message);
+      return body?.error?.code === 503;
+    } catch {
+      // message wasn't JSON — not a Gemini API error
+    }
+  }
+  return false;
+}
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  commitSha: string
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!isRetryable(err)) throw err;
+
+      lastError = err;
+      const delayMs = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      console.warn(
+        `[llm-judge] Gemini 503 for commit ${commitSha.slice(0, 8)}, ` +
+        `attempt ${attempt}/${MAX_RETRIES}, retrying in ${delayMs}ms...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  throw new Error(
+    `[llm-judge] Gemini unavailable after ${MAX_RETRIES} attempts for commit ` +
+    `${commitSha.slice(0, 8)} (high demand). Last error: ${String(lastError)}`
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -102,11 +152,10 @@ Return your refined judgment as JSON.`;
 
 // ---------------------------------------------------------------------------
 // Specialised prompt builders per label tier
-// (These narrow the LLM's focus so prompts stay concise and targeted.)
 // ---------------------------------------------------------------------------
 
 /**
- * For commits already flagged as Blunder or Mistake by heuristics.
+ * For commits flagged as Blunder or Mistake.
  * Asks the LLM to find the root cause and suggest a concrete fix.
  */
 function buildBadMovePrompt(ctx: HeuristicContext): string {
@@ -120,7 +169,6 @@ function buildBadMovePrompt(ctx: HeuristicContext): string {
 
 /**
  * For commits flagged Inaccuracy — sub-optimal but not broken.
- * Asks the LLM to explain what a cleaner approach would look like.
  */
 function buildInaccuracyPrompt(ctx: HeuristicContext): string {
   return (
@@ -133,7 +181,6 @@ function buildInaccuracyPrompt(ctx: HeuristicContext): string {
 
 /**
  * For commits flagged Good or Best.
- * Asks the LLM to confirm quality and optionally highlight what was done well.
  */
 function buildGoodMovePrompt(ctx: HeuristicContext): string {
   return (
@@ -146,7 +193,6 @@ function buildGoodMovePrompt(ctx: HeuristicContext): string {
 
 /**
  * For commits flagged Brilliant.
- * Asks the LLM to confirm and explain what makes it exceptional.
  */
 function buildBrilliantMovePrompt(ctx: HeuristicContext): string {
   return (
@@ -191,26 +237,30 @@ function clamp(value: number, min: number, max: number): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Calls Gemini 2.0 Flash with heuristic context and returns a refined judgment.
- * Throws if the model returns malformed JSON or an unexpected label.
+ * Calls Gemini with heuristic context and returns a refined judgment.
+ * Retries up to MAX_RETRIES times on 503 high-demand errors with
+ * exponential backoff. Throws on any other error or exhausted retries.
  */
 export async function judgeCommit(ctx: HeuristicContext): Promise<LLMJudgeResult> {
   const userPrompt = selectPrompt(ctx);
 
-  const response = await genai.models.generateContent({
-    model: MODEL,
-    contents: userPrompt,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      temperature: 0.2,   // Low temperature for consistent, evidence-based judgments
-      maxOutputTokens: 512,
-    },
-  });
+  const raw = await withRetry(async () => {
+    const response = await genai.models.generateContent({
+      model: MODEL,
+      contents: userPrompt,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        temperature: 0.2,
+        maxOutputTokens: 512,
+      },
+    });
 
-  const raw = response.text?.trim();
-  if (!raw) {
-    throw new Error(`LLM returned empty response for commit ${ctx.commitSha}`);
-  }
+    const text = response.text?.trim();
+    if (!text) {
+      throw new Error(`LLM returned empty response for commit ${ctx.commitSha}`);
+    }
+    return text;
+  }, ctx.commitSha);
 
   let parsed: LLMJudgeResult;
   try {
