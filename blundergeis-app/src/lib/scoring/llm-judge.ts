@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import type { MoveLabel } from "@/src/types/review";
+import type { MoveLabel } from "@/types/review";
 
 // ---------------------------------------------------------------------------
 // Client

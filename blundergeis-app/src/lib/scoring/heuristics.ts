@@ -1,4 +1,4 @@
-import type { MoveLabel } from "@/src/types/review";
+import type { MoveLabel } from "@/types/review";
 import type { HeuristicContext } from "./llm-judge";
 
 // ---------------------------------------------------------------------------
