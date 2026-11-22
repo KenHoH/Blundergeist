@@ -2,6 +2,7 @@
 title: Product Rules - Truth vs Show Layer
 inclusion: always
 ---
+- Read only one file at a time when exploring the codebase to avoid API rate limits.
 
 # Product Rules: Truth Layer vs. Show Layer
 
@@ -18,8 +19,7 @@ The board never feeds back into the score. Labels always come from the eval swin
   - Commit scores derived from CI results, hindsight, diff complexity, scope creep, and LLM rubric
   - Labels: Brilliant, Best, Good, Inaccuracy, Mistake, Blunder
   - Eval swing that determines each label
-  - "Best Move" suggestions for bad commits
-
+  
 ### Show Layer (The Visualization)
 - **What it is**: The chess board animation
 - **Source**: Generated from the truth layer
