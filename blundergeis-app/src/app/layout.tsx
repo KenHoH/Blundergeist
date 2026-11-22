@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "BlunderGeist",
-  description: "Chess game with Stockfish",
+  description: "Turn your GitHub PRs into chess game reviews. Score commits with Brilliant, Best, and Blunder badges.",
 };
 
 export default function RootLayout({

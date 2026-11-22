@@ -81,14 +81,16 @@ export function MoveList({
 
         {/* Moves */}
         {moves.map((m) => {
-          const isSelected = currentIndex === m.index;
+          // Convert 0-based move index to 1-based position for the player
+          const movePosition = m.index + 1;
+          const isSelected = currentIndex === movePosition;
           const badge = getLabelBadgeStyle(m.label);
 
           return (
             <button
               key={m.index}
               ref={isSelected ? activeItemRef : null}
-              onClick={() => onSelectMove(m.index)}
+              onClick={() => onSelectMove(movePosition)}
               className={`w-full text-left p-2.5 rounded-lg flex items-center justify-between gap-2 text-xs transition ${
                 isSelected
                   ? "bg-zinc-100 dark:bg-zinc-800 font-bold text-zinc-900 dark:text-zinc-100 ring-1 ring-emerald-500/50"

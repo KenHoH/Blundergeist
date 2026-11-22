@@ -4,20 +4,12 @@ import type { LLMJudgeResult } from "./llm-judge";
 // ---------------------------------------------------------------------------
 // Eval Calculator
 // Consumes per-commit LLM judge results and produces:
-//   1. Per-move eval bar values  (whitePov 0–1, blackPov 0–1)
+//   1. Per-move eval scores  (evalScore, clamped -10..+10)
 //   2. A single accuracy score   (0–100) summarising the whole PR
 // ---------------------------------------------------------------------------
 
 /**
- * The eval bar value for one commit move.
- *
- * whitePov: fraction of the bar filled for White (the PR author / good side).
- *   0.5  → equal position
- *   >0.5 → White advantage  (good commits dominating)
- *   <0.5 → Black advantage  (bad commits / CI failures dominating)
- *
- * blackPov is always 1 - whitePov. Both are included so the UI component
- * can render either side without arithmetic.
+ * The eval data for one commit move.
  */
 export interface MoveEval {
   /** Commit index (0-based, matches ReviewMove.index) */
@@ -26,10 +18,6 @@ export interface MoveEval {
   label: MoveLabel;
   /** Raw score from the LLM judge, clamped to [-10, +10] */
   evalScore: number;
-  /** White's share of the eval bar: 0.0 – 1.0 */
-  whitePov: number;
-  /** Black's share of the eval bar: 0.0 – 1.0  (always 1 - whitePov) */
-  blackPov: number;
 }
 
 /**
@@ -61,25 +49,6 @@ const LABEL_ACCURACY: Record<MoveLabel, number> = {
 };
 
 // ---------------------------------------------------------------------------
-// Core conversion: evalScore → whitePov
-//
-// Chess engines use a logistic curve so that the bar doesn't pin to 100 %
-// on tiny material advantages. We apply the same idea:
-//
-//   whitePov = 1 / (1 + e^(-k * evalScore))
-//
-// where k controls how steeply the bar moves. With k = 0.3 the bar reaches
-// ~73 % at evalScore = +3 (Best) and ~96 % at +10 (Brilliant), leaving
-// visible room at both extremes.
-// ---------------------------------------------------------------------------
-
-const K = 0.3;
-
-function evalToWhitePov(evalScore: number): number {
-  return 1 / (1 + Math.exp(-K * evalScore));
-}
-
-// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -97,17 +66,12 @@ export function calculateEval(
     return { moves: [], accuracyScore: 0 };
   }
 
-  const moves: MoveEval[] = results.map((r) => {
-    const whitePov = evalToWhitePov(r.evalScore);
-    return {
-      index:     r.index,
-      commitSha: r.commitSha,
-      label:     r.label,
-      evalScore: r.evalScore,
-      whitePov:  Math.round(whitePov * 1000) / 1000,   // 3 decimal places
-      blackPov:  Math.round((1 - whitePov) * 1000) / 1000,
-    };
-  });
+  const moves: MoveEval[] = results.map((r) => ({
+    index:     r.index,
+    commitSha: r.commitSha,
+    label:     r.label,
+    evalScore: r.evalScore,
+  }));
 
   const accuracyScore = computeAccuracy(results.map((r) => r.label));
 

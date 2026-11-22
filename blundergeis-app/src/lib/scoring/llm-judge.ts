@@ -5,13 +5,19 @@ import type { MoveLabel } from "@/types/review";
 // Client
 // ---------------------------------------------------------------------------
 
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error("Missing env var: GEMINI_API_KEY");
+// Client is created lazily so the module can load even without an API key.
+// judgeCommit() throws if the key is missing — caught by route.ts's per-move
+// try/catch, which falls back to heuristics. This keeps the whole review alive.
+let genai: GoogleGenAI | null = null;
+
+function getClient(): GoogleGenAI {
+  if (!genai) {
+    genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return genai;
 }
 
-const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-const MODEL = "gemini-3.8-flash";
+const MODEL = "gemini-3.6-flash";
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1000; // doubles each attempt: 1s → 2s → 4s
 
@@ -48,23 +54,55 @@ export interface LLMJudgeResult {
 }
 
 // ---------------------------------------------------------------------------
-// Retry helper with exponential backoff
+// Retry helper with exponential backoff + API-aware delay
 // ---------------------------------------------------------------------------
 
 /**
- * Returns true when the error is a transient 503 high-demand spike.
+ * Inspects a Gemini API error and decides whether it is transient (retryable)
+ * and, if so, how long to wait before the next attempt.
+ *
+ * - 503 (high demand): retryable, use exponential backoff (no delay in body).
+ * - 429 (quota exceeded): retryable. The response includes a RetryInfo
+ *   detail with a "retryDelay" string like "16s" — the time until the
+ *   per-minute quota window resets. We honour that instead of the short
+ *   exponential backoff, which would waste all retries inside the same
+ *   window.
+ *
  * Any other error (404, 400, auth) is non-retryable and should propagate.
  */
-function isRetryable(err: unknown): boolean {
+function getRetryInfo(err: unknown): { retryable: boolean; delayMs: number } {
   if (err instanceof Error) {
     try {
       const body = JSON.parse(err.message);
-      return body?.error?.code === 503;
+      const code = body?.error?.code;
+      const retryable = code === 503 || code === 429;
+      if (!retryable) return { retryable: false, delayMs: 0 };
+
+      // 429: try to parse retryDelay from the RetryInfo detail.
+      const details = body?.error?.details;
+      if (Array.isArray(details)) {
+        for (const d of details) {
+          if (
+            typeof d?.["@type"] === "string" &&
+            d["@type"].includes("RetryInfo") &&
+            typeof d.retryDelay === "string"
+          ) {
+            const match = /^(\d+(?:\.\d+)?)s$/.exec(d.retryDelay);
+            if (match) {
+              // Add a 1s safety buffer so we don't retry a hair too early.
+              return { retryable: true, delayMs: parseFloat(match[1]) * 1000 + 1000 };
+            }
+          }
+        }
+      }
+
+      // Retryable but no explicit delay — fall back to exponential backoff.
+      return { retryable: true, delayMs: 0 };
     } catch {
       // message wasn't JSON — not a Gemini API error
     }
   }
-  return false;
+  return { retryable: false, delayMs: 0 };
 }
 
 async function withRetry<T>(
@@ -77,13 +115,16 @@ async function withRetry<T>(
     try {
       return await fn();
     } catch (err) {
-      if (!isRetryable(err)) throw err;
+      const { retryable, delayMs: apiDelayMs } = getRetryInfo(err);
+      if (!retryable) throw err;
 
       lastError = err;
-      const delayMs = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      // Use the API-suggested delay when available; otherwise exponential backoff.
+      const expDelayMs = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      const delayMs = apiDelayMs > 0 ? apiDelayMs : expDelayMs;
       console.warn(
-        `[llm-judge] Gemini 503 for commit ${commitSha.slice(0, 8)}, ` +
-        `attempt ${attempt}/${MAX_RETRIES}, retrying in ${delayMs}ms...`
+        `[llm-judge] Gemini transient error for commit ${commitSha.slice(0, 8)}, ` +
+        `attempt ${attempt}/${MAX_RETRIES}, retrying in ${Math.round(delayMs)}ms...`
       );
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
@@ -91,7 +132,7 @@ async function withRetry<T>(
 
   throw new Error(
     `[llm-judge] Gemini unavailable after ${MAX_RETRIES} attempts for commit ` +
-    `${commitSha.slice(0, 8)} (high demand). Last error: ${String(lastError)}`
+    `${commitSha.slice(0, 8)}. Last error: ${String(lastError)}`
   );
 }
 
@@ -233,25 +274,49 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 // ---------------------------------------------------------------------------
+// Markdown fence stripper
+// ---------------------------------------------------------------------------
+
+/**
+ * Gemini sometimes wraps JSON output in markdown code fences (```json ...
+ * ```) despite the system prompt saying "No markdown fences." This strips
+ * a single leading fence and any trailing fence so JSON.parse succeeds.
+ */
+function stripMarkdownFences(text: string): string {
+  let trimmed = text.trim();
+  // Remove leading ```json or ```
+  trimmed = trimmed.replace(/^```(?:json)?\s*\n?/, "");
+  // Remove trailing ```
+  trimmed = trimmed.replace(/\n?```\s*$/, "");
+  return trimmed.trim();
+}
+
+// ---------------------------------------------------------------------------
 // Main judge function
 // ---------------------------------------------------------------------------
 
 /**
  * Calls Gemini with heuristic context and returns a refined judgment.
- * Retries up to MAX_RETRIES times on 503 high-demand errors with
- * exponential backoff. Throws on any other error or exhausted retries.
+ * Retries up to MAX_RETRIES times on transient errors (503 high-demand,
+ * 429 quota exceeded). For 429s, the API's retryDelay is honoured so we
+ * wait until the per-minute quota resets instead of retrying too soon.
+ * Throws on any other error or exhausted retries.
  */
 export async function judgeCommit(ctx: HeuristicContext): Promise<LLMJudgeResult> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("Missing env var: GEMINI_API_KEY");
+  }
+  const client = getClient();
   const userPrompt = selectPrompt(ctx);
 
   const raw = await withRetry(async () => {
-    const response = await genai.models.generateContent({
+    const response = await client.models.generateContent({
       model: MODEL,
       contents: userPrompt,
       config: {
         systemInstruction: SYSTEM_PROMPT,
         temperature: 0.2,
-        maxOutputTokens: 512,
+        maxOutputTokens: 1024,
       },
     });
 
@@ -264,7 +329,7 @@ export async function judgeCommit(ctx: HeuristicContext): Promise<LLMJudgeResult
 
   let parsed: LLMJudgeResult;
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(stripMarkdownFences(raw));
   } catch {
     throw new Error(
       `LLM returned invalid JSON for commit ${ctx.commitSha}:\n${raw}`

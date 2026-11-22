@@ -7,7 +7,7 @@
   "accuracyScore": 87,
   "moves": [
     {
-      "index": 1,
+      "index": 0,
       "commitSha": "e4a1b02",
       "commitMessage": "feat: setup initial auth middleware & session schemas",
       "label": "Best",
@@ -20,7 +20,7 @@
       "soundType": "move"
     },
     {
-      "index": 2,
+      "index": 1,
       "commitSha": "b3c9d11",
       "commitMessage": "feat: register oauth provider callback handlers",
       "label": "Good",
@@ -33,7 +33,7 @@
       "soundType": "move"
     },
     {
-      "index": 3,
+      "index": 2,
       "commitSha": "9f2a78e",
       "commitMessage": "refactor: introduce cryptographically secure session rotation",
       "label": "Best",
@@ -46,7 +46,7 @@
       "soundType": "move"
     },
     {
-      "index": 4,
+      "index": 3,
       "commitSha": "4a1e9c0",
       "commitMessage": "test: add mock integration suite for concurrent logins",
       "label": "Good",
@@ -59,7 +59,7 @@
       "soundType": "move"
     },
     {
-      "index": 5,
+      "index": 4,
       "commitSha": "c7d2e8b",
       "commitMessage": "perf: implement multi-tenant redis session cache tier",
       "label": "Brilliant",
@@ -72,7 +72,7 @@
       "soundType": "move"
     },
     {
-      "index": 6,
+      "index": 5,
       "commitSha": "1e8f3b4",
       "commitMessage": "chore: add bypass header for local staging tests",
       "label": "Inaccuracy",
@@ -87,7 +87,7 @@
       "soundType": "move"
     },
     {
-      "index": 7,
+      "index": 6,
       "commitSha": "8e3b1c9",
       "commitMessage": "fix: revoke compromised staging keys & enforce signed HMAC",
       "label": "Best",
@@ -100,7 +100,7 @@
       "soundType": "check"
     },
     {
-      "index": 8,
+      "index": 7,
       "commitSha": "5d2a1f0",
       "commitMessage": "merge: fast-forward merge without waiting for smoke test CI",
       "label": "Blunder",

@@ -251,7 +251,7 @@ export async function fetchPR(
     files: c.files,
     additions: c.additions,
     deletions: c.deletions,
-    wasRevertedLater: hindsightMap.get(c.sha) !== null && hindsightMap.get(c.sha) !== undefined && hindsightMap.get(c.sha) !== null,
+    wasRevertedLater: hindsightMap.get(c.sha) !== null,
     fixedByLaterCommit: hindsightMap.get(c.sha) ?? null,
   }));
 
@@ -269,9 +269,30 @@ export async function fetchPR(
   }));
 
   // ── 7. Head CI (for outcome signal) ──────────────────────────────────────
+  // Try the legacy Statuses API first, then fall back to the Checks API
+  // (GitHub Actions) when no legacy status was reported.
   const { data: headStatus } = await octokit.repos.getCombinedStatusForRef({
     owner, repo, ref: pr.head.sha,
   });
+
+  let outcomeSignal = mapOutcomeSignal(headStatus.state);
+
+  if (outcomeSignal === "unresolved") {
+    const { data: checks } = await octokit.checks.listForRef({
+      owner, repo, ref: pr.head.sha, per_page: 100,
+    });
+    const runs = checks.check_runs;
+    if (runs.length > 0) {
+      const allSuccess = runs.every(
+        (r) => r.conclusion === "success" || r.conclusion === "skipped"
+      );
+      const anyFailure = runs.some(
+        (r) => r.conclusion === "failure" || r.conclusion === "timed_out"
+      );
+      if (allSuccess) outcomeSignal = "passing";
+      else if (anyFailure) outcomeSignal = "failing";
+    }
+  }
 
   // ── 8. Group into moves ───────────────────────────────────────────────────
   const moves = groupCommits(normalizedCommits);
@@ -288,7 +309,7 @@ export async function fetchPR(
     title: pr.title,
     headSha: pr.head.sha,
     prState,
-    outcomeSignal: mapOutcomeSignal(headStatus.state),
+    outcomeSignal,
     moves,
     reviewComments,
     totalCommits: meaningfulCommits.length,

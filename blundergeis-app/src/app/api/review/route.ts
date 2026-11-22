@@ -9,7 +9,7 @@ import { matchGame } from "@/lib/chess/match-game";
 import { pgnToMoves } from "@/lib/chess/pgn-to-moves";
 import type { LLMJudgeResult } from "@/lib/scoring/llm-judge";
 import type { GameReviewPayload, ReviewMove, MoveLabel } from "@/types/review";
-import type { NormalizedMove, PrOutcomeSignal } from "@/types/github";
+import type { NormalizedMove, PrOutcomeSignal, NormalizedPR } from "@/types/github";
 
 // ---------------------------------------------------------------------------
 // POST /api/review
@@ -57,10 +57,13 @@ function moveToCommitInput(move: NormalizedMove) {
 
 function outcomeSignalToPayload(
   signal: PrOutcomeSignal,
-  hasRecovery: boolean
+  hasRecovery: boolean,
+  prState: NormalizedPR["prState"]
 ): GameReviewPayload["outcome"] {
   if (signal === "passing") return hasRecovery ? "recovery_win" : "white_win";
   if (signal === "failing") return "black_mate";
+  // signal is "unresolved" — use prState as final fallback
+  if (prState === "merged") return "white_win";
   return "draw";
 }
 
@@ -128,47 +131,49 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // ── Cache miss: run the full pipeline ────────────────────────────────
     const pr = await fetchPR(owner, repo, prNumber);
 
-    // ── Gap #5: parallel LLM calls + Gap #2: heuristic fallback ─────────
-    const judgeResults: Array<LLMJudgeResult & { commitSha: string; index: number }> =
-      await Promise.all(
-        pr.moves.map(async (move) => {
-          const commitInput  = moveToCommitInput(move);
-          const heuristicCtx = scoreCommit(commitInput);
+    // ── Sequential LLM calls (avoids exceeding per-minute API quota) ──
+    // Firing all commits at once via Promise.all blows past the free-tier
+    // limit (5 requests/min) and causes every call to fail. Processing one
+    // commit at a time lets the retry logic in llm-judge.ts wait for the
+    // quota window to reset between commits.
+    const judgeResults: Array<LLMJudgeResult & { commitSha: string; index: number }> = [];
+    for (const move of pr.moves) {
+      const commitInput  = moveToCommitInput(move);
+      const heuristicCtx = scoreCommit(commitInput);
 
-          let judgeResult: LLMJudgeResult;
-          try {
-            judgeResult = await judgeCommit(heuristicCtx);
-          } catch (err) {
-            // Gap #2: LLM exhausted retries or errored — fall back to heuristics.
-            // The review still completes; the reason field tells the user why.
-            console.warn(
-              `[api/review] LLM unavailable for ${move.commits[0].sha.slice(0, 8)}, ` +
-              `falling back to heuristic. Error: ${err instanceof Error ? err.message : String(err)}`
-            );
-            const needsBestMove = ["Inaccuracy", "Mistake", "Blunder"].includes(
-              heuristicCtx.heuristicLabel
-            );
-            judgeResult = {
-              label:     heuristicCtx.heuristicLabel,
-              evalScore: heuristicCtx.heuristicScore,
-              reason:    "LLM unavailable — heuristic score used (CI result, diff size, hindsight).",
-              bestMove:  needsBestMove
-                ? "Review this commit manually — automated suggestion unavailable."
-                : undefined,
-              codeSnippet: undefined,
-            };
-          }
+      let judgeResult: LLMJudgeResult;
+      try {
+        judgeResult = await judgeCommit(heuristicCtx);
+      } catch (err) {
+        // LLM exhausted retries or errored — fall back to heuristics.
+        // The review still completes; the reason field tells the user why.
+        console.warn(
+          `[api/review] LLM unavailable for ${move.commits[0].sha.slice(0, 8)}, ` +
+          `falling back to heuristic. Error: ${err instanceof Error ? err.message : String(err)}`
+        );
+        const needsBestMove = ["Inaccuracy", "Mistake", "Blunder"].includes(
+          heuristicCtx.heuristicLabel
+        );
+        judgeResult = {
+          label:     heuristicCtx.heuristicLabel,
+          evalScore: heuristicCtx.heuristicScore,
+          reason:    "LLM unavailable — heuristic score used (CI result, diff size, hindsight).",
+          bestMove:  needsBestMove
+            ? "Review this commit manually — automated suggestion unavailable."
+            : undefined,
+          codeSnippet: undefined,
+        };
+      }
 
-          return { ...judgeResult, commitSha: move.commits[0].sha, index: move.index };
-        })
-      );
+      judgeResults.push({ ...judgeResult, commitSha: move.commits[0].sha, index: move.index });
+    }
 
     // ── Eval calculator ───────────────────────────────────────────────────
     const evalResult = calculateEval(judgeResults);
 
     // ── Outcome ───────────────────────────────────────────────────────────
     const labels  = judgeResults.map((r) => r.label);
-    const outcome = outcomeSignalToPayload(pr.outcomeSignal, detectRecovery(labels));
+    const outcome = outcomeSignalToPayload(pr.outcomeSignal, detectRecovery(labels), pr.prState);
 
     // ── Chess show layer ──────────────────────────────────────────────────
     const pgn        = matchGame(pr.moves.length, outcome, prNumber);

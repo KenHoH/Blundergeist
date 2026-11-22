@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export function PrInputForm() {
@@ -8,6 +8,11 @@ export function PrInputForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Reset loading state when the component unmounts (e.g. after back-navigation)
+  useEffect(() => {
+    return () => setLoading(false);
+  }, []);
 
   const parsePrUrl = (input: string): { owner: string; repo: string; pr: string } | null => {
     const trimmed = input.trim();
