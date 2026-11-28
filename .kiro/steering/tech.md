@@ -3,6 +3,10 @@ title: Tech Stack and Integration Choices
 inclusion: always
 ---
 
+## Agent Execution Rules
+- Never run parallel tool calls. Run at most 1 tool call per turn.
+- During brainstorming or Q&A, do not read or search files unless explicitly asked. Just ask your question in text.
+
 # Tech Stack and Integration Choices
 
 ## Frontend Framework

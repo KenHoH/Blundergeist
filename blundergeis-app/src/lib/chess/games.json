@@ -1,0 +1,53 @@
+{
+  "games": [
+    {
+      "id": "white-5-scholars-quick",
+      "plies": 5,
+      "outcome": "white_win",
+      "description": "Fastest white checkmate — 1.e4 f6 2.d4 g5 3.Qh5#",
+      "pgn": "1. e4 f6 2. d4 g5 3. Qh5#"
+    },
+    {
+      "id": "white-7-scholars",
+      "plies": 7,
+      "outcome": "white_win",
+      "description": "Scholar's Mate — 1.e4 e5 2.Bc4 Nc6 3.Qh5 Nf6 4.Qxf7#",
+      "pgn": "1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7#"
+    },
+    {
+      "id": "white-13-legals",
+      "plies": 13,
+      "outcome": "white_win",
+      "description": "Légal's Mate — queen sacrifice and mate in 7 moves",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 d6 4. Nc3 Bg4 5. Nxe5 Bxd1 6. Bxf7+ Ke7 7. Nd5#"
+    },
+    {
+      "id": "black-4-fools",
+      "plies": 4,
+      "outcome": "black_mate",
+      "description": "Fool's Mate — fastest possible checkmate, Black wins",
+      "pgn": "1. f3 e5 2. g4 Qh4#"
+    },
+    {
+      "id": "black-14-blackburne",
+      "plies": 14,
+      "outcome": "black_mate",
+      "description": "Blackburne Shilling Gambit — Black checkmates with Nf3#",
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5 Qg5 5. Nxf7 Qxg2 6. Rf1 Qxe4+ 7. Be2 Nf3#"
+    },
+    {
+      "id": "draw-10-repetition",
+      "plies": 10,
+      "outcome": "draw",
+      "description": "Threefold repetition — knights shuffle to a draw",
+      "pgn": "1. e4 e5 2. Nf3 Nf6 3. Ng1 Ng8 4. Nf3 Nf6 5. Ng1 Ng8"
+    },
+    {
+      "id": "draw-19-stalemate",
+      "plies": 19,
+      "outcome": "draw",
+      "description": "Classic shortest stalemate — White runs out of moves",
+      "pgn": "1. e3 a5 2. Qh5 Ra6 3. Qxa5 h5 4. h4 Rah6 5. Qxc7 f6 6. Qxd7+ Kf7 7. Qxb7 Qd3 8. Qxb8 Qh7 9. Qxc8 Kg6 10. Qe6"
+    }
+  ]
+}
