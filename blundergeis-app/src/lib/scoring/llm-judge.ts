@@ -1,25 +1,11 @@
-import { GoogleGenAI } from "@google/genai";
 import type { MoveLabel } from "@/types/review";
 
 // ---------------------------------------------------------------------------
-// Client
+// Provider: Groq (OpenAI-compatible REST, no SDK dependency)
 // ---------------------------------------------------------------------------
 
-// Client is created lazily so the module can load even without an API key.
-// judgeCommit() throws if the key is missing — caught by route.ts's per-move
-// try/catch, which falls back to heuristics. This keeps the whole review alive.
-let genai: GoogleGenAI | null = null;
-
-function getClient(): GoogleGenAI {
-  if (!genai) {
-    genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  }
-  return genai;
-}
-
-const MODEL = "gemini-3.6-flash";
-const MAX_RETRIES = 3;
-const RETRY_BASE_DELAY_MS = 1000; // doubles each attempt: 1s → 2s → 4s
+const GROQ_MODEL = "qwen/qwen3.8-27b";
+const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 
 // ---------------------------------------------------------------------------
 // Input / Output types
@@ -51,89 +37,6 @@ export interface LLMJudgeResult {
   reason: string;       // 1-2 sentences citing specific diff evidence
   bestMove?: string;    // Required when label is Inaccuracy, Mistake, or Blunder
   codeSnippet?: string; // The most relevant diff hunk (≤20 lines)
-}
-
-// ---------------------------------------------------------------------------
-// Retry helper with exponential backoff + API-aware delay
-// ---------------------------------------------------------------------------
-
-/**
- * Inspects a Gemini API error and decides whether it is transient (retryable)
- * and, if so, how long to wait before the next attempt.
- *
- * - 503 (high demand): retryable, use exponential backoff (no delay in body).
- * - 429 (quota exceeded): retryable. The response includes a RetryInfo
- *   detail with a "retryDelay" string like "16s" — the time until the
- *   per-minute quota window resets. We honour that instead of the short
- *   exponential backoff, which would waste all retries inside the same
- *   window.
- *
- * Any other error (404, 400, auth) is non-retryable and should propagate.
- */
-function getRetryInfo(err: unknown): { retryable: boolean; delayMs: number } {
-  if (err instanceof Error) {
-    try {
-      const body = JSON.parse(err.message);
-      const code = body?.error?.code;
-      const retryable = code === 503 || code === 429;
-      if (!retryable) return { retryable: false, delayMs: 0 };
-
-      // 429: try to parse retryDelay from the RetryInfo detail.
-      const details = body?.error?.details;
-      if (Array.isArray(details)) {
-        for (const d of details) {
-          if (
-            typeof d?.["@type"] === "string" &&
-            d["@type"].includes("RetryInfo") &&
-            typeof d.retryDelay === "string"
-          ) {
-            const match = /^(\d+(?:\.\d+)?)s$/.exec(d.retryDelay);
-            if (match) {
-              // Add a 1s safety buffer so we don't retry a hair too early.
-              return { retryable: true, delayMs: parseFloat(match[1]) * 1000 + 1000 };
-            }
-          }
-        }
-      }
-
-      // Retryable but no explicit delay — fall back to exponential backoff.
-      return { retryable: true, delayMs: 0 };
-    } catch {
-      // message wasn't JSON — not a Gemini API error
-    }
-  }
-  return { retryable: false, delayMs: 0 };
-}
-
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  commitSha: string
-): Promise<T> {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      const { retryable, delayMs: apiDelayMs } = getRetryInfo(err);
-      if (!retryable) throw err;
-
-      lastError = err;
-      // Use the API-suggested delay when available; otherwise exponential backoff.
-      const expDelayMs = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
-      const delayMs = apiDelayMs > 0 ? apiDelayMs : expDelayMs;
-      console.warn(
-        `[llm-judge] Gemini transient error for commit ${commitSha.slice(0, 8)}, ` +
-        `attempt ${attempt}/${MAX_RETRIES}, retrying in ${Math.round(delayMs)}ms...`
-      );
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
-  }
-
-  throw new Error(
-    `[llm-judge] Gemini unavailable after ${MAX_RETRIES} attempts for commit ` +
-    `${commitSha.slice(0, 8)}. Last error: ${String(lastError)}`
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -195,10 +98,6 @@ Return your refined judgment as JSON.`;
 // Specialised prompt builders per label tier
 // ---------------------------------------------------------------------------
 
-/**
- * For commits flagged as Blunder or Mistake.
- * Asks the LLM to find the root cause and suggest a concrete fix.
- */
 function buildBadMovePrompt(ctx: HeuristicContext): string {
   return (
     buildUserPrompt(ctx) +
@@ -208,9 +107,6 @@ function buildBadMovePrompt(ctx: HeuristicContext): string {
   );
 }
 
-/**
- * For commits flagged Inaccuracy — sub-optimal but not broken.
- */
 function buildInaccuracyPrompt(ctx: HeuristicContext): string {
   return (
     buildUserPrompt(ctx) +
@@ -220,9 +116,6 @@ function buildInaccuracyPrompt(ctx: HeuristicContext): string {
   );
 }
 
-/**
- * For commits flagged Good or Best.
- */
 function buildGoodMovePrompt(ctx: HeuristicContext): string {
   return (
     buildUserPrompt(ctx) +
@@ -232,9 +125,6 @@ function buildGoodMovePrompt(ctx: HeuristicContext): string {
   );
 }
 
-/**
- * For commits flagged Brilliant.
- */
 function buildBrilliantMovePrompt(ctx: HeuristicContext): string {
   return (
     buildUserPrompt(ctx) +
@@ -266,29 +156,40 @@ function selectPrompt(ctx: HeuristicContext): string {
 }
 
 // ---------------------------------------------------------------------------
-// Score clamp helper
+// Helpers
 // ---------------------------------------------------------------------------
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-// ---------------------------------------------------------------------------
-// Markdown fence stripper
-// ---------------------------------------------------------------------------
-
-/**
- * Gemini sometimes wraps JSON output in markdown code fences (```json ...
- * ```) despite the system prompt saying "No markdown fences." This strips
- * a single leading fence and any trailing fence so JSON.parse succeeds.
- */
 function stripMarkdownFences(text: string): string {
   let trimmed = text.trim();
-  // Remove leading ```json or ```
   trimmed = trimmed.replace(/^```(?:json)?\s*\n?/, "");
-  // Remove trailing ```
   trimmed = trimmed.replace(/\n?```\s*$/, "");
   return trimmed.trim();
+}
+
+function validateAndNormalise(parsed: LLMJudgeResult, commitSha: string): LLMJudgeResult {
+  const validLabels: MoveLabel[] = [
+    "Brilliant", "Best", "Good", "Inaccuracy", "Mistake", "Blunder",
+  ];
+  if (!validLabels.includes(parsed.label)) {
+    throw new Error(
+      `LLM returned unknown label "${parsed.label}" for commit ${commitSha}`
+    );
+  }
+
+  parsed.evalScore = clamp(parsed.evalScore, -10, 10);
+
+  const needsBestMove: MoveLabel[] = ["Inaccuracy", "Mistake", "Blunder"];
+  if (needsBestMove.includes(parsed.label) && !parsed.bestMove) {
+    throw new Error(
+      `LLM omitted required "bestMove" for ${parsed.label} commit ${commitSha}`
+    );
+  }
+
+  return parsed;
 }
 
 // ---------------------------------------------------------------------------
@@ -296,66 +197,58 @@ function stripMarkdownFences(text: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Calls Gemini with heuristic context and returns a refined judgment.
- * Retries up to MAX_RETRIES times on transient errors (503 high-demand,
- * 429 quota exceeded). For 429s, the API's retryDelay is honoured so we
- * wait until the per-minute quota resets instead of retrying too soon.
- * Throws on any other error or exhausted retries.
+ * Calls Groq (qwen/qwen3.8-27b) with JSON mode to refine the heuristic
+ * judgment for a single commit.
+ * Throws on API error or invalid response — route.ts catches this and falls
+ * back to pure heuristics, keeping the review alive.
  */
 export async function judgeCommit(ctx: HeuristicContext): Promise<LLMJudgeResult> {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("Missing env var: GEMINI_API_KEY");
-  }
-  const client = getClient();
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("Missing env var: GROQ_API_KEY");
+
   const userPrompt = selectPrompt(ctx);
 
-  const raw = await withRetry(async () => {
-    const response = await client.models.generateContent({
-      model: MODEL,
-      contents: userPrompt,
-      config: {
-        systemInstruction: SYSTEM_PROMPT,
-        temperature: 0.2,
-        maxOutputTokens: 1024,
-      },
-    });
+  const response = await fetch(GROQ_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.2,
+      max_tokens: 1024,
+      response_format: { type: "json_object" },
+    }),
+  });
 
-    const text = response.text?.trim();
-    if (!text) {
-      throw new Error(`LLM returned empty response for commit ${ctx.commitSha}`);
-    }
-    return text;
-  }, ctx.commitSha);
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(
+      `[llm-judge] Groq API error ${response.status} for commit ${ctx.commitSha.slice(0, 8)}: ${body}`
+    );
+  }
+
+  const json = await response.json();
+  const text: string = json.choices?.[0]?.message?.content ?? "";
+  if (!text) {
+    throw new Error(
+      `[llm-judge] Groq returned empty response for commit ${ctx.commitSha}`
+    );
+  }
 
   let parsed: LLMJudgeResult;
   try {
-    parsed = JSON.parse(stripMarkdownFences(raw));
+    parsed = JSON.parse(stripMarkdownFences(text));
   } catch {
     throw new Error(
-      `LLM returned invalid JSON for commit ${ctx.commitSha}:\n${raw}`
+      `[llm-judge] Groq returned invalid JSON for commit ${ctx.commitSha}:\n${text}`
     );
   }
 
-  // Validate label
-  const validLabels: MoveLabel[] = [
-    "Brilliant", "Best", "Good", "Inaccuracy", "Mistake", "Blunder",
-  ];
-  if (!validLabels.includes(parsed.label)) {
-    throw new Error(
-      `LLM returned unknown label "${parsed.label}" for commit ${ctx.commitSha}`
-    );
-  }
-
-  // Clamp score to contract bounds
-  parsed.evalScore = clamp(parsed.evalScore, -10, 10);
-
-  // Enforce bestMove requirement for negative labels
-  const needsBestMove: MoveLabel[] = ["Inaccuracy", "Mistake", "Blunder"];
-  if (needsBestMove.includes(parsed.label) && !parsed.bestMove) {
-    throw new Error(
-      `LLM omitted required "bestMove" for ${parsed.label} commit ${ctx.commitSha}`
-    );
-  }
-
-  return parsed;
+  return validateAndNormalise(parsed, ctx.commitSha);
 }
